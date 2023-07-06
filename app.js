@@ -21,10 +21,18 @@ app.route('/register')
     res.render('register')
 })
 .post((req,res) => { 
-    App.insertMany(req.body).then(() =>{
-         console.log('Success Register Data')
+    // App.insertMany(req.body).save().then(() => {
+    //     console.log('Success add REGISTER');
+    //     res.render('secrets')
+    // })
+    const newUser = new App({ 
+        username : req.body.username,
+        password : req.body.password
+    })
+    newUser.save().then(() => { 
+        console.log('SUCCESS REGISTER');
         res.render('secrets')
-        })
+    })
 })
 
 // **** ***** **** ***** **** ***Route LOGINNN**** *** *** *** ** *
