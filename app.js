@@ -2,7 +2,8 @@
 const express = require('express');
 const app = express();
 const ejs = require('ejs')
-
+const md5  = require('md5')
+const bcrypt = require('bcrypt')
 
 // Require data and Collection 
 const App = require('./dataAndCollect/dbAndCollect');
@@ -23,19 +24,19 @@ app.route('/register')
     res.render('register')
 })
 .post((req,res) => { 
-    // App.insertMany(req.body).save().then(() => {
-    //     console.log('Success add REGISTER');
-    //     res.render('secrets')
-    // })
-    const newUser = new App({ 
-        username : req.body.username,
-        password : req.body.password
-    })
-    newUser.save().then(() => { 
-        console.log('SUCCESS REGISTER');
-        res.render('secrets')
-    })
-})
+    const saltRounds = 10;
+    bcrypt.hash(req.body.password, saltRounds).then((hash) => { 
+        const newUser = new App({ 
+            username : req.body.username,
+            password : hash
+        });
+        newUser.save().then(() => { 
+            console.log('SUCCESS REGISTER');
+            res.render('secrets')
+        });
+    });
+ 
+});
 
 // **** ***** **** ***** **** ***Route LOGINNN**** *** *** *** ** *
 app.route('/login')
@@ -45,13 +46,15 @@ app.route('/login')
 .post((req,res) => { 
     App.findOne({username : req.body.username}).then( (data) =>
      { 
-        if(data && data.password === req.body.password){ 
-            console.log('Success Login');
-            res.render('secrets');
-        }else{ 
-            if(!data){
-                res.send('Data tidak ada');
+        if(data){ 
+            bcrypt.compare(req.body.password ,data.password).then((result) => { 
+            if(result === true) {
+                res.render('secrets') 
+                console.log('Success Loginn.');
+            } else{ 
+               res.send('Data not Found')
             }
+        })
         }
     }).catch((err) =>
      { 
